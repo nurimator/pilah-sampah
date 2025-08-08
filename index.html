@@ -15,11 +15,12 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
+            overflow: hidden; /* Mencegah scroll */
         }
 
         /* Container untuk kanvas game (75% tinggi layar) */
         .game-canvas-container {
+            position: relative; /* Diperlukan untuk positioning tombol pause */
             width: 100%;
             height: 75vh;
             display: flex;
@@ -81,28 +82,30 @@
         .bins-container { max-width: 35%; }
         .actions-container { max-width: 30%; }
 
-
         .ui-panel h2 {
             margin-top: 0;
+            margin-bottom: 10px;
             color: #333;
             text-align: center;
             font-size: 1.2em;
         }
 
         .stat-item {
-            font-size: 1em;
-            margin-bottom: 5px;
-            padding: 5px;
+            font-size: 0.9em; /* Ukuran font diperkecil agar muat */
+            margin-bottom: 4px;
+            padding: 4px;
             background-color: #f9f9f9;
             border-radius: 5px;
             border-left: 3px solid #007bff;
             width: 100%;
+            box-sizing: border-box;
         }
         
         .stat-item.money { border-color: #28a745; }
         .stat-item.durability { border-color: #ffc107; }
+        .stat-item.grab-level { border-color: #9c27b0; } /* Warna untuk level grab */
 
-        .actions-container button, .bins-container button {
+        .actions-container button {
             width: 100%;
             padding: 8px 10px;
             margin-bottom: 5px;
@@ -116,43 +119,80 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .actions-container button:hover, .bins-container button:hover {
+        .actions-container button:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .actions-container button:disabled {
+            background-color: #9e9e9e;
+            cursor: not-allowed;
         }
 
         .btn-sell { background-color: #28a745; }
         .btn-buy-trap { background-color: #007bff; }
         .btn-maintain-trap { background-color: #ffc107; }
+        .btn-upgrade-grab { background-color: #9c27b0; } /* Warna tombol upgrade */
 
         /* Pengaturan baru untuk container keranjang sampah */
         .bins-container {
             flex-direction: row; /* Tong sampah disusun horizontal */
             justify-content: center;
             align-items: center;
-            gap: 10px; /* Jarak antar tong sampah */
+            gap: 20px; /* Jarak antar tong sampah diperbesar */
+            height: 100%;
         }
         
-        .bins-container button {
-            width: 80px; /* Ukuran persegi */
-            height: 80px;
+        .bin-button {
+            height: 90%; /* Memenuhi tinggi kontainer */
+            aspect-ratio: 4 / 5; /* Menjaga rasio lebar:tinggi */
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             margin: 0;
-            font-size: 1em;
+            font-size: 1.3em;
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .bin-plastik { background-color: #ff5722; }
-        .bin-kertas { background-color: #2196f3; }
-        .bin-logam { background-color: #607d8b; }
-
-        .bin-drop-zone.highlight {
-            box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.7);
-            transform: scale(1.05);
+        .bin-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
 
-        .game-over-overlay, .game-win-overlay {
+        .bin-organik { background-color: #4caf50; }
+        .bin-anorganik { background-color: #795548; }
+
+        .bin-button.highlight {
+            box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.9); /* Efek highlight lebih jelas */
+            transform: scale(1.1);
+        }
+
+        /* Elemen sampah yang diseret */
+        #draggedTrash {
+            position: absolute;
+            width: 60px; /* Diperbesar agar muat tulisan stack */
+            height: 60px;
+            border-radius: 8px;
+            display: none; /* Sembunyi secara default */
+            pointer-events: none; /* Agar tidak mengganggu event mouse di bawahnya */
+            z-index: 9999; /* Selalu di atas */
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            text-align: center;
+            line-height: 60px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -165,30 +205,64 @@
             z-index: 100;
         }
 
-        .game-over-box, .game-win-box {
+        .overlay-box {
             background-color: #fff;
             padding: 40px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        .game-over-box h1 { color: #dc3545; }
-        .game-win-box h1 { color: #28a745; }
+        .overlay-box h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .overlay-box .game-over-title { color: #dc3545; }
 
-        .game-over-box button, .game-win-box button {
-            padding: 10px 20px;
+        .overlay-box button {
+            padding: 12px 25px;
             font-size: 1.2em;
             border-radius: 8px;
             border: none;
             cursor: pointer;
-            background-color: #007bff;
             color: #fff;
-            margin-top: 20px;
+            font-weight: bold;
+            transition: background-color 0.2s;
         }
 
-        .game-over-box button:hover, .game-win-box button:hover {
-            background-color: #0056b3;
+        #resumeBtn { background-color: #28a745; }
+        #resumeBtn:hover { background-color: #218838; }
+        
+        #restartBtn { background-color: #007bff; }
+        #restartBtn:hover { background-color: #0056b3; }
+        
+        .btn-placeholder {
+            background-color: #9e9e9e;
+            cursor: not-allowed;
+        }
+        
+        #pauseBtn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 50;
+            transition: background-color 0.3s;
+        }
+        #pauseBtn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
         }
         
         .message-box {
@@ -196,26 +270,30 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #333;
+            background-color: rgba(0,0,0,0.8);
             color: #fff;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 24px;
+            border-radius: 20px;
             opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+            transition: opacity 0.5s ease-in-out, top 0.5s ease-in-out;
             z-index: 200;
         }
 
         .message-box.show {
             opacity: 1;
+            top: 30px;
         }
-
     </style>
 </head>
 <body>
 
     <div class="game-canvas-container">
         <canvas id="gameCanvas"></canvas>
+        <button id="pauseBtn">||</button>
     </div>
+
+    <!-- Elemen untuk sampah yang diseret -->
+    <div id="draggedTrash"></div>
 
     <div class="bottom-ui-container">
         <div class="ui-panel">
@@ -226,20 +304,21 @@
                 <div class="stat-item">Sampah Terlewat: <span id="lewat">0</span> / 10</div>
                 <div class="stat-item durability">Durabilitas Perangkap: <span id="trapDurability">N/A</span></div>
                 <div class="stat-item">Kecepatan Sampah: <span id="trashSpeed">1.0</span>x</div>
+                <div class="stat-item grab-level">Area Grab: Lv. <span id="grabLevel">1</span></div>
             </div>
 
+            <!-- Kontainer keranjang sampah baru -->
             <div class="bins-container">
-                <h2>Keranjang Sampah</h2>
-                <button class="bin-plastik" id="bin-plastik">Plastik</button>
-                <button class="bin-kertas" id="bin-kertas">Kertas</button>
-                <button class="bin-logam" id="bin-logam">Logam</button>
+                <button class="bin-button bin-organik" id="bin-organik">Organik</button>
+                <button class="bin-button bin-anorganik" id="bin-anorganik">Anorganik</button>
             </div>
             
             <div class="actions-container">
                 <h2>Aksi</h2>
                 <button class="btn-sell" id="sellBtn">Jual Sampah (Rp 0)</button>
                 <button class="btn-buy-trap" id="buyTrapBtn">Beli Perangkap (Rp 500)</button>
-                <button class="btn-maintain-trap" id="maintainTrapBtn">Maintenance Perangkap (Rp 250)</button>
+                <button class="btn-maintain-trap" id="maintainTrapBtn">Maintenance (Rp 250)</button>
+                <button class="btn-upgrade-grab" id="upgradeGrabBtn">Upgrade Area Grab (Rp 1000)</button>
             </div>
         </div>
     </div>
@@ -248,29 +327,31 @@
     <div id="messageBox" class="message-box"></div>
 
     <!-- Game Over Overlay -->
-    <div class="game-over-overlay" id="gameOverOverlay">
-        <div class="game-over-box">
-            <h1>GAME OVER!</h1>
+    <div class="overlay" id="gameOverOverlay">
+        <div class="overlay-box">
+            <h1 class="game-over-title">GAME OVER!</h1>
             <p>10 sampah telah terlewat.</p>
             <p>Skor Akhir: <span id="finalScore">0</span></p>
-            <button onclick="window.location.reload()">Mulai Ulang</button>
+            <button id="restartBtn">Mulai Ulang</button>
+        </div>
+    </div>
+    
+    <!-- Pause Menu Overlay -->
+    <div class="overlay" id="pauseMenuOverlay">
+        <div class="overlay-box">
+            <h1>Game Dijeda</h1>
+            <button id="resumeBtn">Lanjutkan</button>
+            <button class="btn-placeholder" disabled>Coming Soon</button>
+            <button class="btn-placeholder" disabled>Coming Soon</button>
         </div>
     </div>
 
-    <!-- Game Win (Placeholder) -->
-    <div class="game-win-overlay" id="gameWinOverlay">
-        <div class="game-win-box">
-            <h1>SELAMAT!</h1>
-            <p>Anda berhasil menjaga kebersihan sungai.</p>
-            <button onclick="window.location.reload()">Mulai Ulang</button>
-        </div>
-    </div>
 
     <script>
         // Mendapatkan elemen canvas dan konteks 2D
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let animationFrameId; // Variabel untuk menyimpan ID animasi
+        let animationFrameId;
 
         // Definisi variabel game
         let gameState = {
@@ -278,32 +359,39 @@
             money: 0,
             trashPassed: 0,
             isGameOver: false,
-            trashCaught: [],
+            isPaused: false, // Status pause baru
+            trashOnScreen: [],
             trashInTrap: [],
             isTrapOwned: false,
             trapDurability: 0,
             isTrapBroken: false,
             trashSpeedMultiplier: 1.0,
-            lastSpeedIncreaseTime: Date.now(),
-            selectedTrash: null,
-            dragOffset: { x: 0, y: 0 },
+            selectedTrashStack: [],
+            isDragging: false,
             collectedTrash: {
+                organik: [],
                 plastik: [],
                 kertas: [],
+                kaca: [],
                 logam: []
-            }
+            },
+            grabLevel: 1,
+            grabRadius: 75,
+            grabUpgradeCost: 1000,
         };
 
-        // Data karakteristik sampah (sesuai permintaan JSON)
+        // Data karakteristik sampah baru
         const TRASH_TYPES = {
-            plastik: { jenis: 'plastik', harga_per_kg: 50, damage_perangkap: 1, berat_kg: 0.1 },
-            kertas: { jenis: 'kertas', harga_per_kg: 30, damage_perangkap: 0.5, berat_kg: 0.05 },
-            logam: { jenis: 'logam', harga_per_kg: 100, damage_perangkap: 2, berat_kg: 0.5 }
+            organik: { jenis: 'organik', kategori: 'organik', harga_per_kg: 20, damage_perangkap: 0.2, berat_kg: 0.2, kecepatan_dasar_multiplier: 0.8, color: '#8bc34a' },
+            plastik: { jenis: 'plastik', kategori: 'anorganik', harga_per_kg: 50, damage_perangkap: 1, berat_kg: 0.1, kecepatan_dasar_multiplier: 1.0, color: '#ff5722' },
+            kertas: { jenis: 'kertas', kategori: 'anorganik', harga_per_kg: 30, damage_perangkap: 0.5, berat_kg: 0.05, kecepatan_dasar_multiplier: 1.1, color: '#2196f3' },
+            kaca: { jenis: 'kaca', kategori: 'anorganik', harga_per_kg: 40, damage_perangkap: 3, berat_kg: 0.7, kecepatan_dasar_multiplier: 0.9, color: '#e0e0e0' },
+            logam: { jenis: 'logam', kategori: 'anorganik', harga_per_kg: 100, damage_perangkap: 2, berat_kg: 0.5, kecepatan_dasar_multiplier: 0.7, color: '#607d8b' }
         };
 
         const config = {
-            trashSpawnInterval: 1500, // Waktu (ms) antar sampah muncul
-            trashBaseSpeed: 1, // Kecepatan dasar per frame
+            trashSpawnInterval: 1500,
+            trashBaseSpeed: 1.2, // Kecepatan dasar sedikit dinaikkan
             trapMaxDurability: 100,
             buyTrapCost: 500,
             maintainTrapCost: 250
@@ -322,20 +410,20 @@
         const maintainTrapBtn = document.getElementById('maintainTrapBtn');
         const gameOverOverlay = document.getElementById('gameOverOverlay');
         const finalScoreEl = document.getElementById('finalScore');
-        const gameWinOverlay = document.getElementById('gameWinOverlay');
         const binButtons = {
-            plastik: document.getElementById('bin-plastik'),
-            kertas: document.getElementById('bin-kertas'),
-            logam: document.getElementById('bin-logam')
+            organik: document.getElementById('bin-organik'),
+            anorganik: document.getElementById('bin-anorganik')
         };
         const messageBox = document.getElementById('messageBox');
-        
-        // Pilihan warna untuk tiap jenis sampah
-        const trashColors = {
-            'plastik': 'rgba(255, 87, 34, 0.8)',
-            'kertas': 'rgba(33, 150, 243, 0.8)',
-            'logam': 'rgba(96, 125, 139, 0.8)'
-        };
+        const draggedTrashEl = document.getElementById('draggedTrash');
+        const grabLevelEl = document.getElementById('grabLevel');
+        const upgradeGrabBtn = document.getElementById('upgradeGrabBtn');
+        // Elemen baru untuk pause
+        const pauseBtn = document.getElementById('pauseBtn');
+        const pauseMenuOverlay = document.getElementById('pauseMenuOverlay');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
 
         // Class untuk objek sampah
         class Sampah {
@@ -343,26 +431,31 @@
                 this.type = type;
                 this.x = x;
                 this.y = y;
-                this.width = 40; // Diperbesar
-                this.height = 40; // Diperbesar
-                this.speed = config.trashBaseSpeed * gameState.trashSpeedMultiplier;
-                this.color = trashColors[type.jenis];
-                this.id = Math.random(); // ID unik untuk setiap sampah
+                this.width = 50; // Ukuran diperbesar
+                this.height = 50; // Ukuran diperbesar
+                this.baseSpeed = config.trashBaseSpeed * this.type.kecepatan_dasar_multiplier;
+                this.color = this.type.color;
+                this.id = Math.random();
+                this.isVisible = true;
             }
 
             draw() {
+                if (!this.isVisible) return;
                 ctx.fillStyle = this.color;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.fillStyle = '#fff';
-                ctx.fillText(this.type.jenis.charAt(0).toUpperCase(), this.x + this.width / 2 - 5, this.y + this.height / 2 + 5);
+                
+                ctx.fillStyle = (this.type.jenis === 'kaca') ? '#000' : '#fff';
+                ctx.font = 'bold 24px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.type.jenis.charAt(0).toUpperCase(), this.x + this.width / 2, this.y + this.height / 2 + 2);
             }
 
-            update() {
-                this.y += this.speed;
+            update(multiplier) {
+                this.y += this.baseSpeed * multiplier;
             }
         }
 
-        // Fungsi untuk menampilkan pesan
         function showMessage(message, duration = 3000) {
             messageBox.innerText = message;
             messageBox.classList.add('show');
@@ -371,79 +464,63 @@
             }, duration);
         }
 
-        // Fungsi untuk mengatur ulang ukuran canvas saat window diresize
         function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth * 0.9;
-            canvas.height = canvas.parentElement.clientHeight * 0.95;
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth * 0.9;
+            canvas.height = container.clientHeight * 0.95;
         }
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas(); // Panggil saat pertama kali dimuat
+        resizeCanvas();
 
-        // Fungsi untuk menggambar pemandangan game (sungai, daratan, dll)
         function drawBackground() {
-            // Daratan
             ctx.fillStyle = '#6b4d3e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Sungai
-            ctx.fillStyle = '#a4d2e1';
             const riverWidth = canvas.width / 2;
             const riverStartX = (canvas.width - riverWidth) / 2;
+            ctx.fillStyle = '#a4d2e1';
             ctx.fillRect(riverStartX, 0, riverWidth, canvas.height);
             
-            // Perangkap sampah
             if (gameState.isTrapOwned) {
-                if (!gameState.isTrapBroken) {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                    ctx.fillRect(riverStartX, canvas.height - 100, riverWidth, 15);
-                } else {
-                    ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
-                    ctx.fillRect(riverStartX, canvas.height - 100, riverWidth, 15);
-                }
+                ctx.fillStyle = gameState.isTrapBroken ? 'rgba(255, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)';
+                ctx.fillRect(riverStartX, canvas.height - 100, riverWidth, 15);
             }
         }
 
-        // Fungsi untuk memperbarui semua elemen game
         function update() {
-            // Perbarui posisi setiap sampah yang tidak sedang diseret
-            gameState.trashCaught.forEach(trash => {
-                if (trash !== gameState.selectedTrash) {
-                    trash.update();
-                }
-            });
-
-            // Tambah kecepatan sampah seiring waktu
-            const currentTime = Date.now();
-            if (currentTime - gameState.lastSpeedIncreaseTime > 60000) { // Setiap 1 menit
-                gameState.trashSpeedMultiplier += 0.1;
-                gameState.lastSpeedIncreaseTime = currentTime;
-                trashSpeedEl.innerText = gameState.trashSpeedMultiplier.toFixed(1);
-            }
+            gameState.trashSpeedMultiplier = 1.0 + Math.floor(gameState.score / 100) * 0.1;
+            gameState.trashOnScreen.forEach(trash => trash.update(gameState.trashSpeedMultiplier));
         }
 
-        // Fungsi untuk menggambar semua elemen game
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Hapus canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawBackground();
-
-            // Gambar semua sampah
-            gameState.trashCaught.forEach(trash => trash.draw());
-            
-            // Gambar sampah yang tertangkap perangkap
+            gameState.trashOnScreen.forEach(trash => trash.draw());
             gameState.trashInTrap.forEach(trash => trash.draw());
         }
+        
+        // Fungsi baru untuk pause dan resume
+        function pauseGame() {
+            if (gameState.isGameOver) return;
+            gameState.isPaused = true;
+            pauseMenuOverlay.style.display = 'flex';
+            cancelAnimationFrame(animationFrameId); // Hentikan loop
+        }
+        
+        function resumeGame() {
+            if (gameState.isGameOver) return;
+            gameState.isPaused = false;
+            pauseMenuOverlay.style.display = 'none';
+            animationFrameId = requestAnimationFrame(gameLoop); // Lanjutkan loop
+        }
 
-        // Fungsi untuk loop utama game
+
         function gameLoop() {
-            if (gameState.isGameOver) {
+            if (gameState.isGameOver || gameState.isPaused) {
                 cancelAnimationFrame(animationFrameId);
                 return;
             }
 
-            // Atur ulang ukuran kanvas jika perlu
-            // resizeCanvas(); // Tidak perlu setiap frame, hanya saat window di-resize
-
-            // Spawn sampah baru
             const now = Date.now();
             if (now - lastTrashSpawnTime > config.trashSpawnInterval) {
                 spawnTrash();
@@ -458,55 +535,46 @@
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        // Fungsi untuk spawn sampah baru
         function spawnTrash() {
-            // Pilih jenis sampah secara acak
             const trashTypesKeys = Object.keys(TRASH_TYPES);
             const randomTypeKey = trashTypesKeys[Math.floor(Math.random() * trashTypesKeys.length)];
             const trashType = TRASH_TYPES[randomTypeKey];
 
-            // Posisi awal sampah di bagian atas sungai
             const riverWidth = canvas.width / 2;
             const riverStartX = (canvas.width - riverWidth) / 2;
-            const x = riverStartX + Math.random() * (riverWidth - 40); // Menyesuaikan dengan ukuran sampah baru
-            const y = -50; // Mulai dari atas kanvas, disesuaikan dengan ukuran sampah
+            const x = riverStartX + Math.random() * (riverWidth - 50);
 
-            const newTrash = new Sampah(trashType, x, y);
-            gameState.trashCaught.push(newTrash);
+            const newTrash = new Sampah(trashType, x, -60);
+            gameState.trashOnScreen.push(newTrash);
         }
 
-        // Fungsi untuk menangani logika game (sampah terlewat, perangkap, dll)
         function handleGameLogic() {
-            // Cek apakah sampah terlewat atau tertangkap oleh perangkap
-            gameState.trashCaught = gameState.trashCaught.filter(trash => {
-                // Jangan cek sampah yang sedang diseret
-                if (trash === gameState.selectedTrash) {
-                    return true;
-                }
+            if (gameState.isTrapBroken && gameState.trashInTrap.length > 0) {
+                gameState.trashInTrap.forEach(trash => gameState.trashOnScreen.push(trash));
+                gameState.trashInTrap = [];
+                showMessage("Sampah dari perangkap rusak terlepas!");
+            }
 
-                // Sampah terlewat (keluar dari layar)
+            gameState.trashOnScreen = gameState.trashOnScreen.filter(trash => {
                 if (trash.y > canvas.height) {
                     gameState.trashPassed++;
-                    return false; // Hapus sampah dari array
+                    return false;
                 }
                 
-                // Sampah tertangkap perangkap
-                if (gameState.isTrapOwned && !gameState.isTrapBroken && trash.y >= canvas.height - 100 - trash.height) {
+                if (gameState.isTrapOwned && !gameState.isTrapBroken && trash.y + trash.height >= canvas.height - 100) {
                     gameState.trashInTrap.push(trash);
-                    // Kurangi durabilitas perangkap
                     gameState.trapDurability -= trash.type.damage_perangkap;
                     if (gameState.trapDurability <= 0) {
                         gameState.isTrapBroken = true;
                         gameState.trapDurability = 0;
                         showMessage("Perangkap sampah rusak!");
                     }
-                    return false; // Hapus sampah dari array
+                    return false;
                 }
                 
                 return true;
             });
             
-            // Logika game over
             if (gameState.trashPassed >= 10) {
                 gameState.isGameOver = true;
                 gameOverOverlay.style.display = 'flex';
@@ -514,14 +582,13 @@
             }
         }
 
-        // Fungsi untuk memperbarui tampilan UI
         function updateUI() {
             scoreEl.innerText = gameState.score;
             moneyEl.innerText = gameState.money;
             lewatEl.innerText = `${gameState.trashPassed} / 10`;
-            trapDurabilityEl.innerText = gameState.isTrapOwned ? `${Math.max(0, gameState.trapDurability)} / ${config.trapMaxDurability}` : 'N/A';
+            trashSpeedEl.innerText = gameState.trashSpeedMultiplier.toFixed(1) + 'x';
+            trapDurabilityEl.innerText = gameState.isTrapOwned ? `${Math.max(0, Math.round(gameState.trapDurability))} / ${config.trapMaxDurability}` : 'N/A';
             
-            // Tombol jual sampah
             let totalSellPrice = 0;
             for (const type in gameState.collectedTrash) {
                 gameState.collectedTrash[type].forEach(trash => {
@@ -531,175 +598,188 @@
             sellBtn.innerText = `Jual Sampah (Rp ${Math.round(totalSellPrice)})`;
             sellBtn.disabled = totalSellPrice === 0;
 
-            // Tombol beli/maintenance
             buyTrapBtn.disabled = gameState.isTrapOwned || gameState.money < config.buyTrapCost;
             maintainTrapBtn.disabled = !gameState.isTrapOwned || (!gameState.isTrapBroken && gameState.trapDurability >= config.trapMaxDurability) || gameState.money < config.maintainTrapCost;
+        
+            grabLevelEl.innerText = gameState.grabLevel;
+            upgradeGrabBtn.innerText = `Upgrade Area Grab (Rp ${gameState.grabUpgradeCost})`;
+            upgradeGrabBtn.disabled = gameState.money < gameState.grabUpgradeCost;
         }
         
-        // --- LOGIKA DRAG AND DROP SAMPAH BARU ---
-        
-        let isDragging = false;
-        
+        function getDistance(trash1, trash2) {
+            const dx = (trash1.x + trash1.width / 2) - (trash2.x + trash2.width / 2);
+            const dy = (trash1.y + trash1.height / 2) - (trash2.y + trash2.height / 2);
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
         canvas.addEventListener('mousedown', (e) => {
+            if (gameState.isDragging || gameState.isPaused || gameState.isGameOver) return;
+
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
-            // Cari sampah yang diklik dari belakang ke depan (yang paling atas)
-            const clickedTrash = gameState.trashCaught.slice().reverse().find(trash => 
+            const grabbableTrash = [...gameState.trashOnScreen, ...gameState.trashInTrap];
+            const clickedTrash = [...grabbableTrash].reverse().find(trash => 
+                trash.isVisible &&
                 mouseX >= trash.x && mouseX <= trash.x + trash.width &&
                 mouseY >= trash.y && mouseY <= trash.y + trash.height
             );
 
             if (clickedTrash) {
-                isDragging = true;
-                gameState.selectedTrash = clickedTrash;
-                // Hitung offset agar sampah tidak melompat ke tengah kursor
-                gameState.dragOffset.x = mouseX - clickedTrash.x;
-                gameState.dragOffset.y = mouseY - clickedTrash.y;
+                gameState.isDragging = true;
+                gameState.selectedTrashStack = [clickedTrash];
+                clickedTrash.isVisible = false;
 
-                // Pindahkan sampah yang dipilih ke paling atas agar terlihat saat diseret
-                gameState.trashCaught = gameState.trashCaught.filter(t => t.id !== gameState.selectedTrash.id);
-                gameState.trashCaught.push(gameState.selectedTrash);
+                grabbableTrash.forEach(otherTrash => {
+                    if (otherTrash.id !== clickedTrash.id && otherTrash.isVisible && otherTrash.type.jenis === clickedTrash.type.jenis && getDistance(clickedTrash, otherTrash) <= gameState.grabRadius) {
+                        gameState.selectedTrashStack.push(otherTrash);
+                        otherTrash.isVisible = false;
+                    }
+                });
+
+                draw();
+
+                const stackSize = gameState.selectedTrashStack.length;
+                draggedTrashEl.style.backgroundColor = clickedTrash.color;
+                draggedTrashEl.style.color = (clickedTrash.type.jenis === 'kaca') ? '#000' : '#fff';
+                draggedTrashEl.innerText = `${clickedTrash.type.jenis.charAt(0).toUpperCase()} x${stackSize}`;
+                draggedTrashEl.style.left = `${e.clientX - draggedTrashEl.offsetWidth / 2}px`;
+                draggedTrashEl.style.top = `${e.clientY - draggedTrashEl.offsetHeight / 2}px`;
+                draggedTrashEl.style.display = 'block';
                 document.body.style.cursor = 'grabbing';
             }
         });
         
         window.addEventListener('mousemove', (e) => {
-            if (isDragging && gameState.selectedTrash) {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-                
-                // Perbarui posisi sampah berdasarkan kursor dan offset
-                gameState.selectedTrash.x = mouseX - gameState.dragOffset.x;
-                gameState.selectedTrash.y = mouseY - gameState.dragOffset.y;
-
-                // Highlight tong sampah yang benar saat sampah diseret di atasnya
+            if (gameState.isDragging && gameState.selectedTrashStack.length > 0) {
+                draggedTrashEl.style.left = `${e.clientX - draggedTrashEl.offsetWidth / 2}px`;
+                draggedTrashEl.style.top = `${e.clientY - draggedTrashEl.offsetHeight / 2}px`;
+                const draggedRect = draggedTrashEl.getBoundingClientRect();
                 for (const type in binButtons) {
-                    const binRect = binButtons[type].getBoundingClientRect();
-                    const trashRect = {
-                        x: selectedTrash.x,
-                        y: selectedTrash.y,
-                        width: selectedTrash.width,
-                        height: selectedTrash.height
-                    };
-                    if (isOverlapping(trashRect, binRect)) {
-                        binButtons[type].classList.add('highlight');
-                    } else {
-                        binButtons[type].classList.remove('highlight');
-                    }
+                    binButtons[type].classList.toggle('highlight', isOverlapping(draggedRect, binButtons[type].getBoundingClientRect()));
                 }
-                
-                // Pastikan kanvas digambar ulang untuk menunjukkan posisi sampah yang baru
-                draw();
             }
         });
         
         window.addEventListener('mouseup', (e) => {
-            if (isDragging && gameState.selectedTrash) {
-                const selectedTrash = gameState.selectedTrash;
-                let isDroppedCorrectly = false;
+            if (!gameState.isDragging) return;
+            
+            if (gameState.selectedTrashStack.length > 0) {
+                 const stack = gameState.selectedTrashStack;
+                const stackCategory = stack[0].type.kategori;
+                let droppedOnBin = false;
                 
-                // Cek apakah sampah dijatuhkan di atas tong sampah yang benar
-                for (const type in binButtons) {
-                    const binRect = binButtons[type].getBoundingClientRect();
-                    const trashRect = {
-                        x: selectedTrash.x,
-                        y: selectedTrash.y,
-                        width: selectedTrash.width,
-                        height: selectedTrash.height
-                    };
-                    
-                    if (isOverlapping(trashRect, binRect)) {
-                        if (selectedTrash.type.jenis === type) {
-                            // Sampah dimasukkan ke tong yang benar
-                            gameState.score += 10;
-                            gameState.collectedTrash[type].push(selectedTrash);
-                            isDroppedCorrectly = true;
-                            showMessage(`Sampah ${type} berhasil dikumpulkan!`);
+                const draggedRect = draggedTrashEl.getBoundingClientRect();
+
+                for (const binCategory in binButtons) {
+                    const binRect = binButtons[binCategory].getBoundingClientRect();
+                    if (isOverlapping(draggedRect, binRect)) {
+                        droppedOnBin = true;
+                        if (stackCategory === binCategory) {
+                            gameState.score += 10 * stack.length;
+                            stack.forEach(trash => gameState.collectedTrash[trash.type.jenis].push(trash));
+                            showMessage(`+${stack.length} sampah ${stack[0].type.jenis} dikumpulkan!`, 2000);
                         } else {
-                            // Sampah dimasukkan ke tong yang salah
-                            gameState.trashPassed++;
-                            showMessage("Itu bukan keranjang yang benar! Sampah terlewat.");
+                            gameState.trashPassed += stack.length;
+                            showMessage(`Salah keranjang! ${stack.length} sampah terlewat.`, 2000);
                         }
+                        break; 
                     }
-                    binButtons[type].classList.remove('highlight');
                 }
                 
-                // Jika sampah tidak dijatuhkan di tong manapun atau salah, hapus sampah
-                if (!isDroppedCorrectly) {
-                    // Sampah dianggap terlewat
-                    gameState.trashPassed++;
+                const stackIds = new Set(stack.map(t => t.id));
+                if (droppedOnBin) {
+                    gameState.trashOnScreen = gameState.trashOnScreen.filter(t => !stackIds.has(t.id));
+                    gameState.trashInTrap = gameState.trashInTrap.filter(t => !stackIds.has(t.id));
+                } else {
+                    const canvasRect = canvas.getBoundingClientRect();
+                    stack.forEach(trash => {
+                        trash.isVisible = true;
+                        gameState.trashInTrap = gameState.trashInTrap.filter(t => t.id !== trash.id); 
+                        
+                        let newX = e.clientX - canvasRect.left - trash.width / 2;
+                        let newY = e.clientY - canvasRect.top - trash.height / 2;
+                        
+                        trash.x = Math.max(0, Math.min(newX, canvas.width - trash.width));
+                        trash.y = Math.max(0, Math.min(newY, canvas.height - trash.height));
+                        
+                        if (!gameState.trashOnScreen.some(t => t.id === trash.id)) {
+                           gameState.trashOnScreen.push(trash);
+                        }
+                    });
+                    showMessage(`${stack.length} sampah kembali ke sungai!`, 2000);
                 }
-
-                // Hapus sampah yang berhasil atau gagal dikumpulkan dari array sampah yang terapung
-                gameState.trashCaught = gameState.trashCaught.filter(t => t.id !== selectedTrash.id);
-
-                // Reset state drag
-                gameState.selectedTrash = null;
-                isDragging = false;
-                document.body.style.cursor = 'default';
-                draw(); // Gambar ulang untuk menghapus sampah yang diseret
             }
+
+            // Reset state
+            for (const type in binButtons) { binButtons[type].classList.remove('highlight'); }
+            draggedTrashEl.style.display = 'none';
+            document.body.style.cursor = 'default';
+            gameState.isDragging = false;
+            gameState.selectedTrashStack = [];
+            draw();
         });
 
-        // Fungsi bantu untuk cek tumpang tindih (overlap)
         function isOverlapping(rect1, rect2) {
-            return rect1.x < rect2.x + rect2.width &&
-                   rect1.x + rect1.width > rect2.x &&
-                   rect1.y < rect2.y + rect2.height &&
-                   rect1.y + rect1.height > rect2.y;
+            return !(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom);
         }
-
-        // --- AKHIR LOGIKA DRAG AND DROP BARU ---
         
-        // Event listener untuk tombol Jual Sampah
+        // Event Listeners untuk Tombol
         sellBtn.addEventListener('click', () => {
             let totalMoney = 0;
             for (const type in gameState.collectedTrash) {
                 gameState.collectedTrash[type].forEach(trash => {
                     totalMoney += trash.type.harga_per_kg * trash.type.berat_kg;
                 });
-                gameState.collectedTrash[type] = []; // Kosongkan keranjang
+                gameState.collectedTrash[type] = [];
             }
-            gameState.money += Math.round(totalMoney);
-            showMessage(`Berhasil menjual sampah senilai Rp ${Math.round(totalMoney)}!`);
-            updateUI();
+            if (totalMoney > 0) {
+                gameState.money += Math.round(totalMoney);
+                showMessage(`Berhasil menjual sampah senilai Rp ${Math.round(totalMoney)}!`);
+                updateUI();
+            }
         });
         
-        // Event listener untuk tombol Beli Perangkap
         buyTrapBtn.addEventListener('click', () => {
-            if (gameState.money >= config.buyTrapCost) {
+            if (gameState.money >= config.buyTrapCost && !gameState.isTrapOwned) {
                 gameState.money -= config.buyTrapCost;
                 gameState.isTrapOwned = true;
                 gameState.isTrapBroken = false;
                 gameState.trapDurability = config.trapMaxDurability;
                 showMessage("Perangkap sampah berhasil dibeli!");
-            } else {
-                showMessage("Uang tidak cukup untuk membeli perangkap!");
+                updateUI();
             }
-            updateUI();
         });
 
-        // Event listener untuk tombol Maintenance Perangkap
         maintainTrapBtn.addEventListener('click', () => {
             if (gameState.isTrapOwned && gameState.money >= config.maintainTrapCost) {
                 gameState.money -= config.maintainTrapCost;
                 gameState.trapDurability = config.trapMaxDurability;
                 gameState.isTrapBroken = false;
                 showMessage("Perangkap berhasil di-maintenance!");
-            } else if (gameState.money < config.maintainTrapCost) {
-                showMessage("Uang tidak cukup untuk maintenance!");
+                updateUI();
             }
-            updateUI();
         });
 
-        // Mulai game loop
+        upgradeGrabBtn.addEventListener('click', () => {
+            if (gameState.money >= gameState.grabUpgradeCost) {
+                gameState.money -= gameState.grabUpgradeCost;
+                gameState.grabLevel++;
+                gameState.grabRadius += 25;
+                gameState.grabUpgradeCost = Math.round(gameState.grabUpgradeCost * 2.5);
+                showMessage(`Area Grab di-upgrade ke Lv. ${gameState.grabLevel}!`);
+                updateUI();
+            }
+        });
+        
+        pauseBtn.addEventListener('click', pauseGame);
+        resumeBtn.addEventListener('click', resumeGame);
+        restartBtn.addEventListener('click', () => window.location.reload());
+
         window.onload = function() {
             gameLoop();
         };
-
     </script>
 </body>
 </html>
