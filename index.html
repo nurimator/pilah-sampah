@@ -105,11 +105,16 @@
         .stat-item.durability { border-color: #ffc107; }
         .stat-item.grab-level { border-color: #9c27b0; } /* Warna untuk level grab */
 
-        .actions-container button {
+        .actions-container {
+            gap: 10px;
+        }
+
+        .actions-container button, #sellBtn {
             width: 100%;
             padding: 8px 10px;
             margin-bottom: 5px;
-            font-size: 0.9em;
+            font-size: 1.2em; /* Tombol lebih besar */
+            height: 45%;
             cursor: pointer;
             border: none;
             border-radius: 8px;
@@ -119,32 +124,39 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .actions-container button:hover:not(:disabled) {
+        .actions-container button:hover:not(:disabled), #sellBtn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
         
-        .actions-container button:disabled {
+        .actions-container button:disabled, #sellBtn:disabled {
             background-color: #9e9e9e;
             cursor: not-allowed;
         }
 
+        #shopBtn { background-color: #007bff; }
+        #inventoryBtn { background-color: #6f42c1; }
         .btn-sell { background-color: #28a745; }
-        .btn-buy-trap { background-color: #007bff; }
-        .btn-maintain-trap { background-color: #ffc107; }
-        .btn-upgrade-grab { background-color: #9c27b0; } /* Warna tombol upgrade */
 
         /* Pengaturan baru untuk container keranjang sampah */
         .bins-container {
-            flex-direction: row; /* Tong sampah disusun horizontal */
+            flex-direction: column; /* Tong sampah dan tombol jual disusun vertikal */
             justify-content: center;
             align-items: center;
-            gap: 20px; /* Jarak antar tong sampah diperbesar */
+            gap: 10px; 
             height: 100%;
         }
         
+        .bin-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            height: 75%;
+            justify-content: center;
+        }
+
         .bin-button {
-            height: 90%; /* Memenuhi tinggi kontainer */
+            height: 100%; /* Memenuhi tinggi wrapper */
             aspect-ratio: 4 / 5; /* Menjaga rasio lebar:tinggi */
             display: flex;
             flex-direction: column;
@@ -173,21 +185,26 @@
             box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.9); /* Efek highlight lebih jelas */
             transform: scale(1.1);
         }
+        
+        #sellBtn {
+            width: 80%;
+            margin-top: 5px;
+        }
 
         /* Elemen sampah yang diseret */
-        #draggedTrash {
+        .dragged-trash-ghost {
             position: absolute;
-            width: 60px; /* Diperbesar agar muat tulisan stack */
-            height: 60px;
-            border-radius: 8px;
-            display: none; /* Sembunyi secara default */
-            pointer-events: none; /* Agar tidak mengganggu event mouse di bawahnya */
-            z-index: 9999; /* Selalu di atas */
+            width: 50px;
+            height: 50px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 9999;
             color: white;
             font-weight: bold;
-            font-size: 20px;
-            text-align: center;
-            line-height: 60px;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             box-shadow: 0 8px 16px rgba(0,0,0,0.3);
             text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
         }
@@ -207,13 +224,16 @@
 
         .overlay-box {
             background-color: #fff;
-            padding: 40px;
+            padding: 20px 40px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             gap: 15px;
+            min-width: 500px; /* Diperlebar untuk katalog */
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .overlay-box h1 {
@@ -225,7 +245,7 @@
 
         .overlay-box button {
             padding: 12px 25px;
-            font-size: 1.2em;
+            font-size: 1.1em;
             border-radius: 8px;
             border: none;
             cursor: pointer;
@@ -234,8 +254,8 @@
             transition: background-color 0.2s;
         }
 
-        #resumeBtn { background-color: #28a745; }
-        #resumeBtn:hover { background-color: #218838; }
+        #resumeBtn, .btn-close-overlay { background-color: #28a745; }
+        #resumeBtn:hover, .btn-close-overlay:hover { background-color: #218838; }
         
         #restartBtn { background-color: #007bff; }
         #restartBtn:hover { background-color: #0056b3; }
@@ -265,6 +285,28 @@
             background-color: rgba(0, 0, 0, 0.8);
         }
         
+        #megaNetBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #dc3545;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 50;
+            transition: all 0.3s;
+            display: none; /* Sembunyi sampai dibeli */
+        }
+        #megaNetBtn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
         .message-box {
             position: absolute;
             top: 20px;
@@ -283,6 +325,67 @@
             opacity: 1;
             top: 30px;
         }
+        
+        /* Gaya Katalog */
+        .catalog-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+        .catalog-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .catalog-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            color: #adb5bd;
+        }
+        .catalog-item h3 {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        .catalog-button-group {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+        }
+        .catalog-button-group button {
+            flex: 1;
+            padding: 8px 5px !important;
+            font-size: 0.8em !important;
+        }
+        .btn-buy { background-color: #28a745; }
+        .btn-repair { background-color: #ffc107; color: #000 !important; }
+        .btn-upgrade { background-color: #9c27b0; }
+        .btn-buy:disabled, .btn-repair:disabled, .btn-upgrade:disabled {
+            background-color: #9e9e9e !important;
+            cursor: not-allowed;
+        }
+
+        .inventory-sell-btn {
+            padding: 5px 10px !important;
+            font-size: 0.9em !important;
+            background-color: #28a745;
+            width: 100%;
+        }
+        .inventory-sell-btn:disabled {
+            background-color: #9e9e9e !important;
+        }
+
     </style>
 </head>
 <body>
@@ -290,10 +393,11 @@
     <div class="game-canvas-container">
         <canvas id="gameCanvas"></canvas>
         <button id="pauseBtn">||</button>
+        <button id="megaNetBtn">NET</button>
     </div>
 
-    <!-- Elemen untuk sampah yang diseret -->
-    <div id="draggedTrash"></div>
+    <!-- Container untuk ghost, tidak perlu di style karena isinya absolute -->
+    <div id="draggedStackContainer"></div>
 
     <div class="bottom-ui-container">
         <div class="ui-panel">
@@ -302,23 +406,23 @@
                 <div class="stat-item">Skor: <span id="score">0</span></div>
                 <div class="stat-item money">Uang: Rp <span id="money">0</span></div>
                 <div class="stat-item">Sampah Terlewat: <span id="lewat">0</span> / 10</div>
-                <div class="stat-item durability">Durabilitas Perangkap: <span id="trapDurability">N/A</span></div>
+                <div class="stat-item durability" id="trapDurabilityContainer">Level Perangkap: -</div>
                 <div class="stat-item">Kecepatan Sampah: <span id="trashSpeed">1.0</span>x</div>
-                <div class="stat-item grab-level">Area Grab: Lv. <span id="grabLevel">1</span></div>
+                <div class="stat-item grab-level">Multi Grab: x<span id="multiGrabLimit">1</span></div>
             </div>
 
             <!-- Kontainer keranjang sampah baru -->
             <div class="bins-container">
-                <button class="bin-button bin-organik" id="bin-organik">Organik</button>
-                <button class="bin-button bin-anorganik" id="bin-anorganik">Anorganik</button>
+                <div class="bin-wrapper">
+                    <button class="bin-button bin-organik" id="bin-organik">Organik</button>
+                    <button class="bin-button bin-anorganik" id="bin-anorganik">Anorganik</button>
+                </div>
+                <button class="btn-sell" id="sellBtn">Jual Sampah (Rp 0)</button>
             </div>
             
             <div class="actions-container">
-                <h2>Aksi</h2>
-                <button class="btn-sell" id="sellBtn">Jual Sampah (Rp 0)</button>
-                <button class="btn-buy-trap" id="buyTrapBtn">Beli Perangkap (Rp 500)</button>
-                <button class="btn-maintain-trap" id="maintainTrapBtn">Maintenance (Rp 250)</button>
-                <button class="btn-upgrade-grab" id="upgradeGrabBtn">Upgrade Area Grab (Rp 1000)</button>
+                <button id="shopBtn">Shop</button>
+                <button id="inventoryBtn">Inventory</button>
             </div>
         </div>
     </div>
@@ -345,6 +449,32 @@
             <button class="btn-placeholder" disabled>Coming Soon</button>
         </div>
     </div>
+    
+    <!-- Shop Menu Overlay -->
+    <div class="overlay" id="shopOverlay">
+        <div class="overlay-box">
+            <h1>Toko</h1>
+            <div class="catalog-container" id="shopContent">
+                <!-- Konten toko akan digenerate oleh JS -->
+            </div>
+            <hr style="width:100%; border-top: 1px solid #ccc;">
+            <div class="catalog-container" id="shopToolsContent">
+                <!-- Konten alat akan digenerate oleh JS -->
+            </div>
+            <button class="btn-close-overlay" id="closeShopBtn">Tutup</button>
+        </div>
+    </div>
+    
+    <!-- Inventory Menu Overlay -->
+    <div class="overlay" id="inventoryOverlay">
+        <div class="overlay-box">
+            <h1>Inventory</h1>
+            <div class="catalog-container" id="inventoryContent">
+                <!-- Konten inventory akan digenerate oleh JS -->
+            </div>
+            <button class="btn-close-overlay" id="closeInventoryBtn">Tutup</button>
+        </div>
+    </div>
 
 
     <script>
@@ -353,61 +483,83 @@
         const ctx = canvas.getContext('2d');
         let animationFrameId;
 
+        // Fungsi baru untuk menghitung harga
+        function getNewUpgradeCost(level, basePrice) {
+            const n = level; // n adalah level yang dituju
+            const b = 2; // konstanta eksponensial
+            if (n <= 0) return basePrice;
+            const cost = basePrice * n * Math.pow(Math.log(n + 1), b);
+            return Math.round(cost / 10) * 10; // Bulatkan ke 10 terdekat
+        }
+
         // Definisi variabel game
         let gameState = {
             score: 0,
             money: 0,
             trashPassed: 0,
             isGameOver: false,
-            isPaused: false, // Status pause baru
+            isPaused: false,
             trashOnScreen: [],
-            trashInTrap: [],
-            isTrapOwned: false,
-            trapDurability: 0,
-            isTrapBroken: false,
+            traps: {
+                left:   { name: 'Kiri', owned: false, level: 0, price: 100 },
+                center: { name: 'Tengah', owned: false, level: 0, price: 300 },
+                right:  { name: 'Kanan', owned: false, level: 0, price: 100 }
+            },
+            tools: {
+                multiGrabber: { name: 'Multi Grabber', owned: false, level: 0, price: 100 },
+                trapSweeper:  { name: 'Trap Sweeper', owned: false, level: 0, price: 300, position: 0, direction: 1, lastSweep: 0, attachedTrash: [] },
+                megaNet:      { name: 'Mega Net', owned: false, level: 0, price: 500, cooldown: 30, lastUsed: 0 }
+            },
             trashSpeedMultiplier: 1.0,
             selectedTrashStack: [],
+            selectedTrashStackGhosts: [], // Untuk visual drag
             isDragging: false,
+            isUsingMegaNet: false,
+            megaNetStartPos: null,
             collectedTrash: {
-                organik: [],
-                plastik: [],
-                kertas: [],
-                kaca: [],
-                logam: []
+                organik: [], plastikP: [], plastikQ: [], plastikR: [], kertas: [], kaca: [], logamL: [], logamM: [], logamN: []
             },
-            grabLevel: 1,
-            grabRadius: 75,
-            grabUpgradeCost: 1000,
+            inventory: {
+                specialX: 0,
+                specialY: 0,
+                specialZ: 0
+            },
         };
 
         // Data karakteristik sampah baru
         const TRASH_TYPES = {
-            organik: { jenis: 'organik', kategori: 'organik', harga_per_kg: 20, damage_perangkap: 0.2, berat_kg: 0.2, kecepatan_dasar_multiplier: 0.8, color: '#8bc34a' },
-            plastik: { jenis: 'plastik', kategori: 'anorganik', harga_per_kg: 50, damage_perangkap: 1, berat_kg: 0.1, kecepatan_dasar_multiplier: 1.0, color: '#ff5722' },
-            kertas: { jenis: 'kertas', kategori: 'anorganik', harga_per_kg: 30, damage_perangkap: 0.5, berat_kg: 0.05, kecepatan_dasar_multiplier: 1.1, color: '#2196f3' },
-            kaca: { jenis: 'kaca', kategori: 'anorganik', harga_per_kg: 40, damage_perangkap: 3, berat_kg: 0.7, kecepatan_dasar_multiplier: 0.9, color: '#e0e0e0' },
-            logam: { jenis: 'logam', kategori: 'anorganik', harga_per_kg: 100, damage_perangkap: 2, berat_kg: 0.5, kecepatan_dasar_multiplier: 0.7, color: '#607d8b' }
+            organik: { jenis: 'organik', kategori: 'organik', harga_per_kg: 20, berat_kg: 0.2, color: '#8bc34a', char: 'O' },
+            plastikP: { jenis: 'plastikP', kategori: 'anorganik', harga_per_kg: 50, berat_kg: 0.1, color: '#ff5722', char: 'P' },
+            plastikQ: { jenis: 'plastikQ', kategori: 'anorganik', harga_per_kg: 60, berat_kg: 0.15, color: '#f44336', char: 'Q' },
+            plastikR: { jenis: 'plastikR', kategori: 'anorganik', harga_per_kg: 75, berat_kg: 0.2, color: '#e91e63', char: 'R' },
+            kertas: { jenis: 'kertas', kategori: 'anorganik', harga_per_kg: 30, berat_kg: 0.05, color: '#2196f3', char: 'K' },
+            kaca: { jenis: 'kaca', kategori: 'anorganik', harga_per_kg: 40, berat_kg: 0.7, color: '#e0e0e0', char: 'G' },
+            logamL: { jenis: 'logamL', kategori: 'anorganik', harga_per_kg: 100, berat_kg: 0.5, color: '#607d8b', char: 'L' },
+            logamM: { jenis: 'logamM', kategori: 'anorganik', harga_per_kg: 120, berat_kg: 0.8, color: '#546e7a', char: 'M' },
+            logamN: { jenis: 'logamN', kategori: 'anorganik', harga_per_kg: 150, berat_kg: 1.2, color: '#455a64', char: 'N' },
+            specialX: { jenis: 'specialX', kategori: 'special', name: 'Bebek Karet', sellPrice: 100, color: '#ffc107', char: 'X' },
+            specialY: { jenis: 'specialY', kategori: 'special', name: 'Boneka Teddy', sellPrice: 250, color: '#ffc107', char: 'Y' },
+            specialZ: { jenis: 'specialZ', kategori: 'special', name: 'Botol Pesan', sellPrice: 0, color: '#ffc107', char: 'Z' }
         };
 
         const config = {
             trashSpawnInterval: 1500,
-            trashBaseSpeed: 1.2, // Kecepatan dasar sedikit dinaikkan
-            trapMaxDurability: 100,
-            buyTrapCost: 500,
-            maintainTrapCost: 250
+            trashBaseSpeed: 1.2,
+            sweeperInterval: 5000, // 5 detik
+            sweeperSpeed: 5,
         };
 
         let lastTrashSpawnTime = 0;
+        let trapPlacementHitboxes = {};
+        let mousePos = { x: 0, y: 0 };
 
         // Mendapatkan elemen UI
         const scoreEl = document.getElementById('score');
         const moneyEl = document.getElementById('money');
         const lewatEl = document.getElementById('lewat');
-        const trapDurabilityEl = document.getElementById('trapDurability');
+        const trapDurabilityContainer = document.getElementById('trapDurabilityContainer');
         const trashSpeedEl = document.getElementById('trashSpeed');
         const sellBtn = document.getElementById('sellBtn');
-        const buyTrapBtn = document.getElementById('buyTrapBtn');
-        const maintainTrapBtn = document.getElementById('maintainTrapBtn');
         const gameOverOverlay = document.getElementById('gameOverOverlay');
         const finalScoreEl = document.getElementById('finalScore');
         const binButtons = {
@@ -415,14 +567,25 @@
             anorganik: document.getElementById('bin-anorganik')
         };
         const messageBox = document.getElementById('messageBox');
-        const draggedTrashEl = document.getElementById('draggedTrash');
-        const grabLevelEl = document.getElementById('grabLevel');
-        const upgradeGrabBtn = document.getElementById('upgradeGrabBtn');
-        // Elemen baru untuk pause
+        const draggedStackContainer = document.getElementById('draggedStackContainer');
+        const multiGrabLimitEl = document.getElementById('multiGrabLimit');
         const pauseBtn = document.getElementById('pauseBtn');
         const pauseMenuOverlay = document.getElementById('pauseMenuOverlay');
         const resumeBtn = document.getElementById('resumeBtn');
         const restartBtn = document.getElementById('restartBtn');
+        const shopBtn = document.getElementById('shopBtn');
+        const inventoryBtn = document.getElementById('inventoryBtn');
+        // Elemen Toko
+        const shopOverlay = document.getElementById('shopOverlay');
+        const shopContent = document.getElementById('shopContent');
+        const shopToolsContent = document.getElementById('shopToolsContent');
+        const closeShopBtn = document.getElementById('closeShopBtn');
+        // Elemen Inventory
+        const inventoryOverlay = document.getElementById('inventoryOverlay');
+        const inventoryContent = document.getElementById('inventoryContent');
+        const closeInventoryBtn = document.getElementById('closeInventoryBtn');
+        // Tombol Skill
+        const megaNetBtn = document.getElementById('megaNetBtn');
 
 
         // Class untuk objek sampah
@@ -431,154 +594,264 @@
                 this.type = type;
                 this.x = x;
                 this.y = y;
-                this.width = 50; // Ukuran diperbesar
-                this.height = 50; // Ukuran diperbesar
-                this.baseSpeed = config.trashBaseSpeed * this.type.kecepatan_dasar_multiplier;
+                this.width = 50;
+                this.height = 50;
+                this.baseSpeed = config.trashBaseSpeed;
                 this.color = this.type.color;
                 this.id = Math.random();
                 this.isVisible = true;
             }
-
             draw() {
                 if (!this.isVisible) return;
                 ctx.fillStyle = this.color;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
-                
-                ctx.fillStyle = (this.type.jenis === 'kaca') ? '#000' : '#fff';
+                let char = this.type.char;
+                let textColor = '#fff';
+                if (['kaca', 'specialX', 'specialY', 'specialZ'].includes(this.type.jenis)) textColor = '#000';
+                ctx.fillStyle = textColor;
                 ctx.font = 'bold 24px Segoe UI';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(this.type.jenis.charAt(0).toUpperCase(), this.x + this.width / 2, this.y + this.height / 2 + 2);
+                ctx.fillText(char, this.x + this.width / 2, this.y + this.height / 2 + 2);
             }
-
-            update(multiplier) {
-                this.y += this.baseSpeed * multiplier;
+            update() {
+                const scorePercent = gameState.score / 100 * 0.1;
+                let trapSlowdownPercent = 0;
+                const trapY = canvas.height * 0.6;
+                if (this.y + this.height >= trapY && this.y < trapY + 15) {
+                    const trashCenterX = this.x + this.width / 2;
+                    for (const part in trapPlacementHitboxes) {
+                        const hitbox = trapPlacementHitboxes[part];
+                        const trap = gameState.traps[part];
+                        if (trap.owned && trashCenterX >= hitbox.x && trashCenterX < hitbox.x + hitbox.width) {
+                            trapSlowdownPercent = 1 + (trap.level - 1) * 0.5;
+                            break;
+                        }
+                    }
+                }
+                const finalMultiplier = 1 + scorePercent - trapSlowdownPercent;
+                this.y += this.baseSpeed * Math.max(0, finalMultiplier);
             }
         }
 
         function showMessage(message, duration = 3000) {
             messageBox.innerText = message;
             messageBox.classList.add('show');
-            setTimeout(() => {
-                messageBox.classList.remove('show');
-            }, duration);
+            setTimeout(() => { messageBox.classList.remove('show'); }, duration);
+        }
+
+        function defineTrapPlacementHitboxes() {
+            const riverWidth = canvas.width / 2;
+            const riverStartX = (canvas.width - riverWidth) / 2;
+            const trapY = canvas.height * 0.6;
+            const segmentWidth = riverWidth / 3;
+            trapPlacementHitboxes = {
+                left:   { x: riverStartX, y: trapY, width: segmentWidth, height: 15 },
+                center: { x: riverStartX + segmentWidth, y: trapY, width: segmentWidth, height: 15 },
+                right:  { x: riverStartX + (segmentWidth * 2), y: trapY, width: segmentWidth, height: 15 }
+            };
         }
 
         function resizeCanvas() {
             const container = canvas.parentElement;
             canvas.width = container.clientWidth * 0.9;
             canvas.height = container.clientHeight * 0.95;
+            defineTrapPlacementHitboxes();
         }
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        
+        function drawPlusButton(x, y, width, height) {
+            ctx.fillStyle = 'rgba(40, 167, 69, 0.8)';
+            ctx.fillRect(x, y, width, height);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('+', x + width / 2, y + height / 2);
+        }
+        
+        function drawTrapsAndButtons() {
+            for (const part in gameState.traps) {
+                const trap = gameState.traps[part];
+                if (trap.owned) {
+                    const hitbox = trapPlacementHitboxes[part];
+                    ctx.fillStyle = `rgba(100, 100, 255, ${0.2 + trap.level * 0.2})`;
+                    ctx.fillRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+                }
+            }
+            const trapY = canvas.height * 0.6;
+            const buttonWidth = 40;
+            const buttonHeight = 25;
+            const margin = 5;
+            const riverStartX = trapPlacementHitboxes.left.x;
+            const riverEndX = trapPlacementHitboxes.right.x + trapPlacementHitboxes.right.width;
+            if (!gameState.traps.left.owned) drawPlusButton(riverStartX - buttonWidth - margin, trapY, buttonWidth, buttonHeight);
+            if (!gameState.traps.right.owned) drawPlusButton(riverEndX + margin, trapY, buttonWidth, buttonHeight);
+            if (gameState.traps.left.owned && gameState.traps.right.owned && !gameState.traps.center.owned) {
+                const centerHitbox = trapPlacementHitboxes.center;
+                drawPlusButton(centerHitbox.x + centerHitbox.width / 2 - buttonWidth / 2, trapY, buttonWidth, buttonHeight);
+            }
+        }
+
+        function drawSweeper() {
+            if (!gameState.tools.trapSweeper.owned) return;
+            const sweeper = gameState.tools.trapSweeper;
+            
+            ctx.fillStyle = 'rgba(255, 0, 255, 0.7)';
+            ctx.fillRect(sweeper.position - 10, canvas.height * 0.6 - 5, 20, 25);
+            // Gambar sampah yang melekat
+            sweeper.attachedTrash.forEach((trash, index) => {
+                trash.x = sweeper.position - trash.width/2;
+                trash.y = canvas.height * 0.6 - 5 - ((index + 1) * 10);
+                trash.draw();
+            });
+        }
+        
+        function drawMegaNetArea() {
+            if (!gameState.isUsingMegaNet) return;
+            ctx.beginPath();
+            ctx.arc(mousePos.x, mousePos.y, 250, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 20, 20, 0.7)';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+        }
 
         function drawBackground() {
             ctx.fillStyle = '#6b4d3e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             const riverWidth = canvas.width / 2;
             const riverStartX = (canvas.width - riverWidth) / 2;
             ctx.fillStyle = '#a4d2e1';
             ctx.fillRect(riverStartX, 0, riverWidth, canvas.height);
-            
-            if (gameState.isTrapOwned) {
-                ctx.fillStyle = gameState.isTrapBroken ? 'rgba(255, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)';
-                ctx.fillRect(riverStartX, canvas.height - 100, riverWidth, 15);
-            }
+            drawTrapsAndButtons();
         }
 
         function update() {
-            gameState.trashSpeedMultiplier = 1.0 + Math.floor(gameState.score / 100) * 0.1;
-            gameState.trashOnScreen.forEach(trash => trash.update(gameState.trashSpeedMultiplier));
+            gameState.trashOnScreen.forEach(trash => trash.update());
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawBackground();
-            gameState.trashOnScreen.forEach(trash => trash.draw());
-            gameState.trashInTrap.forEach(trash => trash.draw());
+            // **PERUBAHAN**: Gambar dari yang paling baru ke paling lama
+            for (let i = gameState.trashOnScreen.length - 1; i >= 0; i--) {
+                gameState.trashOnScreen[i].draw();
+            }
+            drawSweeper();
+            drawMegaNetArea();
         }
         
-        // Fungsi baru untuk pause dan resume
         function pauseGame() {
             if (gameState.isGameOver) return;
             gameState.isPaused = true;
-            pauseMenuOverlay.style.display = 'flex';
-            cancelAnimationFrame(animationFrameId); // Hentikan loop
+            cancelAnimationFrame(animationFrameId);
         }
         
         function resumeGame() {
             if (gameState.isGameOver) return;
             gameState.isPaused = false;
+            shopOverlay.style.display = 'none';
             pauseMenuOverlay.style.display = 'none';
-            animationFrameId = requestAnimationFrame(gameLoop); // Lanjutkan loop
+            inventoryOverlay.style.display = 'none';
+            animationFrameId = requestAnimationFrame(gameLoop);
         }
-
 
         function gameLoop() {
             if (gameState.isGameOver || gameState.isPaused) {
                 cancelAnimationFrame(animationFrameId);
                 return;
             }
-
             const now = Date.now();
             if (now - lastTrashSpawnTime > config.trashSpawnInterval) {
                 spawnTrash();
                 lastTrashSpawnTime = now;
             }
-
             update();
             draw();
             handleGameLogic();
+            handleTools(now);
             updateUI();
-
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
         function spawnTrash() {
             const trashTypesKeys = Object.keys(TRASH_TYPES);
-            const randomTypeKey = trashTypesKeys[Math.floor(Math.random() * trashTypesKeys.length)];
+            let randomTypeKey;
+            if (Math.random() < 0.05) {
+                const specialKeys = ['specialX', 'specialY', 'specialZ'];
+                randomTypeKey = specialKeys[Math.floor(Math.random() * specialKeys.length)];
+            } else {
+                const regularTrashKeys = trashTypesKeys.filter(k => !k.startsWith('special'));
+                randomTypeKey = regularTrashKeys[Math.floor(Math.random() * regularTrashKeys.length)];
+            }
             const trashType = TRASH_TYPES[randomTypeKey];
-
             const riverWidth = canvas.width / 2;
             const riverStartX = (canvas.width - riverWidth) / 2;
             const x = riverStartX + Math.random() * (riverWidth - 50);
-
             const newTrash = new Sampah(trashType, x, -60);
             gameState.trashOnScreen.push(newTrash);
         }
 
         function handleGameLogic() {
-            if (gameState.isTrapBroken && gameState.trashInTrap.length > 0) {
-                gameState.trashInTrap.forEach(trash => gameState.trashOnScreen.push(trash));
-                gameState.trashInTrap = [];
-                showMessage("Sampah dari perangkap rusak terlepas!");
-            }
-
             gameState.trashOnScreen = gameState.trashOnScreen.filter(trash => {
                 if (trash.y > canvas.height) {
                     gameState.trashPassed++;
                     return false;
                 }
-                
-                if (gameState.isTrapOwned && !gameState.isTrapBroken && trash.y + trash.height >= canvas.height - 100) {
-                    gameState.trashInTrap.push(trash);
-                    gameState.trapDurability -= trash.type.damage_perangkap;
-                    if (gameState.trapDurability <= 0) {
-                        gameState.isTrapBroken = true;
-                        gameState.trapDurability = 0;
-                        showMessage("Perangkap sampah rusak!");
-                    }
-                    return false;
-                }
-                
                 return true;
             });
-            
             if (gameState.trashPassed >= 10) {
                 gameState.isGameOver = true;
                 gameOverOverlay.style.display = 'flex';
                 finalScoreEl.innerText = gameState.score;
+                pauseGame();
+            }
+        }
+        
+        function handleTools(now) {
+            // Trap Sweeper
+            const sweeper = gameState.tools.trapSweeper;
+            if (sweeper.owned) {
+                const riverStartX = trapPlacementHitboxes.left.x;
+                const riverEndX = trapPlacementHitboxes.right.x + trapPlacementHitboxes.right.width;
+                sweeper.position += sweeper.direction * config.sweeperSpeed;
+                const trapY = canvas.height * 0.6;
+                const metalTrashOnTraps = gameState.trashOnScreen.filter(t => 
+                    (t.type.jenis.startsWith('logam')) && t.y + t.height >= trapY && t.y < trapY + 15
+                );
+                
+                metalTrashOnTraps.forEach(trash => {
+                    const trashCenterX = trash.x + trash.width / 2;
+                    const sweeperHitbox = { x: sweeper.position - 10, width: 20 };
+                    if (sweeper.attachedTrash.length < sweeper.level && trashCenterX > sweeperHitbox.x && trashCenterX < sweeperHitbox.x + sweeperHitbox.width) {
+                        sweeper.attachedTrash.push(trash);
+                        gameState.trashOnScreen = gameState.trashOnScreen.filter(t => t.id !== trash.id);
+                    }
+                });
+                if (sweeper.position > riverEndX || sweeper.position < riverStartX) {
+                    sweeper.direction *= -1;
+                    if (sweeper.attachedTrash.length > 0) {
+                        gameState.score += sweeper.attachedTrash.length * 10;
+                        sweeper.attachedTrash.forEach(trash => {
+                            gameState.collectedTrash[trash.type.jenis].push(trash);
+                        });
+                        showMessage(`Sweeper mengumpulkan ${sweeper.attachedTrash.length} logam!`);
+                        sweeper.attachedTrash = [];
+                    }
+                }
+            }
+
+            // Mega Net Cooldown
+            const megaNet = gameState.tools.megaNet;
+            if (megaNet.owned) {
+                const timeSinceUsed = (now - megaNet.lastUsed) / 1000;
+                if (timeSinceUsed >= megaNet.cooldown) {
+                    megaNetBtn.disabled = false;
+                    megaNetBtn.innerText = "NET";
+                } else {
+                    megaNetBtn.disabled = true;
+                    megaNetBtn.innerText = Math.ceil(megaNet.cooldown - timeSinceUsed);
+                }
             }
         }
 
@@ -586,100 +859,182 @@
             scoreEl.innerText = gameState.score;
             moneyEl.innerText = gameState.money;
             lewatEl.innerText = `${gameState.trashPassed} / 10`;
-            trashSpeedEl.innerText = gameState.trashSpeedMultiplier.toFixed(1) + 'x';
-            trapDurabilityEl.innerText = gameState.isTrapOwned ? `${Math.max(0, Math.round(gameState.trapDurability))} / ${config.trapMaxDurability}` : 'N/A';
-            
-            let totalSellPrice = 0;
-            for (const type in gameState.collectedTrash) {
-                gameState.collectedTrash[type].forEach(trash => {
-                    totalSellPrice += trash.type.harga_per_kg * trash.type.berat_kg;
-                });
+            const scoreSpeedBonus = 1.0 + Math.floor(gameState.score / 100) * 0.1;
+            trashSpeedEl.innerText = scoreSpeedBonus.toFixed(1) + 'x';
+            let levelText = "Level Perangkap: ";
+            const ownedTraps = Object.keys(gameState.traps).filter(p => gameState.traps[p].owned);
+            if (ownedTraps.length > 0) {
+                levelText += ownedTraps.map(p => `${p.charAt(0).toUpperCase()}: ${gameState.traps[p].level}`).join(', ');
+            } else {
+                levelText += "N/A";
             }
+            trapDurabilityContainer.innerText = levelText;
+            multiGrabLimitEl.innerText = gameState.tools.multiGrabber.owned ? gameState.tools.multiGrabber.level + 1 : 1;
+            let totalSellPrice = 0;
+            Object.values(gameState.collectedTrash).flat().forEach(trash => {
+                totalSellPrice += trash.type.harga_per_kg * trash.type.berat_kg;
+            });
             sellBtn.innerText = `Jual Sampah (Rp ${Math.round(totalSellPrice)})`;
             sellBtn.disabled = totalSellPrice === 0;
-
-            buyTrapBtn.disabled = gameState.isTrapOwned || gameState.money < config.buyTrapCost;
-            maintainTrapBtn.disabled = !gameState.isTrapOwned || (!gameState.isTrapBroken && gameState.trapDurability >= config.trapMaxDurability) || gameState.money < config.maintainTrapCost;
-        
-            grabLevelEl.innerText = gameState.grabLevel;
-            upgradeGrabBtn.innerText = `Upgrade Area Grab (Rp ${gameState.grabUpgradeCost})`;
-            upgradeGrabBtn.disabled = gameState.money < gameState.grabUpgradeCost;
         }
         
-        function getDistance(trash1, trash2) {
-            const dx = (trash1.x + trash1.width / 2) - (trash2.x + trash2.width / 2);
-            const dy = (trash1.y + trash1.height / 2) - (trash2.y + trash2.height / 2);
+        function getDistance(x1, y1, x2, y2) {
+            const dx = x1 - x2;
+            const dy = y1 - y2;
             return Math.sqrt(dx * dx + dy * dy);
         }
 
-        canvas.addEventListener('mousedown', (e) => {
-            if (gameState.isDragging || gameState.isPaused || gameState.isGameOver) return;
+        function getBuyButtonHitboxes() {
+            const hitboxes = {};
+            const trapY = canvas.height * 0.6;
+            const buttonWidth = 40;
+            const buttonHeight = 25;
+            const margin = 5;
+            const riverStartX = trapPlacementHitboxes.left.x;
+            const riverEndX = trapPlacementHitboxes.right.x + trapPlacementHitboxes.right.width;
+            if (!gameState.traps.left.owned) hitboxes.left = { x: riverStartX - buttonWidth - margin, y: trapY, width: buttonWidth, height: buttonHeight };
+            if (!gameState.traps.right.owned) hitboxes.right = { x: riverEndX + margin, y: trapY, width: buttonWidth, height: buttonHeight };
+            if (gameState.traps.left.owned && gameState.traps.right.owned && !gameState.traps.center.owned) {
+                const centerPlacement = trapPlacementHitboxes.center;
+                hitboxes.center = { x: centerPlacement.x + centerPlacement.width / 2 - buttonWidth / 2, y: trapY, width: buttonWidth, height: buttonHeight };
+            }
+            return hitboxes;
+        }
 
+        function buyTrap(part) {
+            const trap = gameState.traps[part];
+            if (gameState.money >= trap.price && !trap.owned) {
+                gameState.money -= trap.price;
+                trap.owned = true;
+                trap.level = 1;
+                showMessage(`Perangkap ${part} berhasil dibeli!`);
+            } else if (!trap.owned) {
+                showMessage("Uang tidak cukup!");
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (gameState.isPaused || gameState.isGameOver) return;
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-
-            const grabbableTrash = [...gameState.trashOnScreen, ...gameState.trashInTrap];
-            const clickedTrash = [...grabbableTrash].reverse().find(trash => 
-                trash.isVisible &&
-                mouseX >= trash.x && mouseX <= trash.x + trash.width &&
-                mouseY >= trash.y && mouseY <= trash.y + trash.height
-            );
-
-            if (clickedTrash) {
-                gameState.isDragging = true;
-                gameState.selectedTrashStack = [clickedTrash];
-                clickedTrash.isVisible = false;
-
-                grabbableTrash.forEach(otherTrash => {
-                    if (otherTrash.id !== clickedTrash.id && otherTrash.isVisible && otherTrash.type.jenis === clickedTrash.type.jenis && getDistance(clickedTrash, otherTrash) <= gameState.grabRadius) {
-                        gameState.selectedTrashStack.push(otherTrash);
-                        otherTrash.isVisible = false;
+            
+            if (gameState.isUsingMegaNet) {
+                const collected = [];
+                gameState.trashOnScreen = gameState.trashOnScreen.filter(trash => {
+                    if (trash.type.kategori === 'anorganik' && getDistance(mouseX, mouseY, trash.x + trash.width/2, trash.y + trash.height/2) <= 250) {
+                        collected.push(trash);
+                        return false;
                     }
+                    return true;
+                });
+                if (collected.length > 0) {
+                    gameState.score += collected.length * 10;
+                    collected.forEach(t => gameState.collectedTrash[t.type.jenis].push(t));
+                    showMessage(`Mega Net menangkap ${collected.length} sampah!`);
+                }
+                gameState.isUsingMegaNet = false;
+                gameState.tools.megaNet.lastUsed = Date.now();
+                canvas.style.cursor = 'pointer';
+                return;
+            }
+
+            const buyButtons = getBuyButtonHitboxes();
+            for (const part in buyButtons) {
+                const hitbox = buyButtons[part];
+                if (mouseX >= hitbox.x && mouseX <= hitbox.x + hitbox.width && mouseY >= hitbox.y && mouseY <= hitbox.y + hitbox.height) {
+                    buyTrap(part);
+                    return;
+                }
+            }
+            if (gameState.isDragging) return;
+            const grabbableTrash = [...gameState.trashOnScreen];
+            // **PERUBAHAN**: Cari dari yang paling lama (paling atas secara visual)
+            const clickedTrash = grabbableTrash.find(trash => 
+                trash.isVisible && mouseX >= trash.x && mouseX <= trash.x + trash.width && mouseY >= trash.y && mouseY <= trash.y + trash.height
+            );
+            if (clickedTrash) {
+                if (clickedTrash.type.kategori === 'special') {
+                    gameState.inventory[clickedTrash.type.jenis]++;
+                    gameState.trashOnScreen = gameState.trashOnScreen.filter(t => t.id !== clickedTrash.id);
+                    showMessage(`${clickedTrash.type.name} ditambahkan ke inventory!`);
+                    draw();
+                    return;
+                }
+                gameState.isDragging = true;
+                const mainTrashData = { trash: clickedTrash, originalX: clickedTrash.x, originalY: clickedTrash.y, relativeX: 0, relativeY: 0 };
+                gameState.selectedTrashStack = [mainTrashData];
+                clickedTrash.isVisible = false;
+                
+                const grabLimit = gameState.tools.multiGrabber.owned ? gameState.tools.multiGrabber.level + 1 : 1;
+
+                const otherTrashOfSameType = grabbableTrash.filter(t =>
+                    t.id !== clickedTrash.id && t.isVisible && t.type.jenis === clickedTrash.type.jenis && getDistance(mouseX, mouseY, t.x + t.width/2, t.y + t.height/2) <= 50
+                );
+                
+                const trashToGrab = otherTrashOfSameType.slice(0, grabLimit - 1);
+                trashToGrab.forEach(t => {
+                    t.isVisible = false;
+                    gameState.selectedTrashStack.push({ trash: t, originalX: t.x, originalY: t.y, relativeX: t.x - clickedTrash.x, relativeY: t.y - clickedTrash.y });
                 });
 
+                draggedStackContainer.innerHTML = '';
+                gameState.selectedTrashStack.forEach(item => {
+                    const ghost = document.createElement('div');
+                    ghost.className = 'dragged-trash-ghost';
+                    ghost.style.backgroundColor = item.trash.color;
+                    ghost.innerText = item.trash.type.char;
+                    ghost.style.color = (['kaca', 'specialX', 'specialY', 'specialZ'].includes(item.trash.type.jenis)) ? '#000' : '#fff';
+                    ghost.offsetX = (item.trash.x + rect.left) - e.clientX;
+                    ghost.offsetY = (item.trash.y + rect.top) - e.clientY;
+                    ghost.style.left = `${e.clientX + ghost.offsetX}px`;
+                    ghost.style.top = `${e.clientY + ghost.offsetY}px`;
+                    draggedStackContainer.appendChild(ghost);
+                    gameState.selectedTrashStackGhosts.push(ghost);
+                });
+                
                 draw();
-
-                const stackSize = gameState.selectedTrashStack.length;
-                draggedTrashEl.style.backgroundColor = clickedTrash.color;
-                draggedTrashEl.style.color = (clickedTrash.type.jenis === 'kaca') ? '#000' : '#fff';
-                draggedTrashEl.innerText = `${clickedTrash.type.jenis.charAt(0).toUpperCase()} x${stackSize}`;
-                draggedTrashEl.style.left = `${e.clientX - draggedTrashEl.offsetWidth / 2}px`;
-                draggedTrashEl.style.top = `${e.clientY - draggedTrashEl.offsetHeight / 2}px`;
-                draggedTrashEl.style.display = 'block';
                 document.body.style.cursor = 'grabbing';
             }
         });
         
         window.addEventListener('mousemove', (e) => {
-            if (gameState.isDragging && gameState.selectedTrashStack.length > 0) {
-                draggedTrashEl.style.left = `${e.clientX - draggedTrashEl.offsetWidth / 2}px`;
-                draggedTrashEl.style.top = `${e.clientY - draggedTrashEl.offsetHeight / 2}px`;
-                const draggedRect = draggedTrashEl.getBoundingClientRect();
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left;
+            mousePos.y = e.clientY - rect.top;
+
+            if (gameState.isDragging && gameState.selectedTrashStackGhosts.length > 0) {
+                gameState.selectedTrashStackGhosts.forEach(ghost => {
+                    ghost.style.left = `${e.clientX + ghost.offsetX}px`;
+                    ghost.style.top = `${e.clientY + ghost.offsetY}px`;
+                });
+                const firstGhostRect = gameState.selectedTrashStackGhosts[0].getBoundingClientRect();
+                const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
+                const isValidDropZone = elementUnderCursor && (elementUnderCursor.id === 'gameCanvas' || elementUnderCursor.classList.contains('bin-button'));
+
+                document.body.style.cursor = isValidDropZone ? 'grabbing' : 'not-allowed';
+                
                 for (const type in binButtons) {
-                    binButtons[type].classList.toggle('highlight', isOverlapping(draggedRect, binButtons[type].getBoundingClientRect()));
+                    binButtons[type].classList.toggle('highlight', isOverlapping(firstGhostRect, binButtons[type].getBoundingClientRect()));
                 }
             }
         });
         
         window.addEventListener('mouseup', (e) => {
             if (!gameState.isDragging) return;
-            
             if (gameState.selectedTrashStack.length > 0) {
-                 const stack = gameState.selectedTrashStack;
-                const stackCategory = stack[0].type.kategori;
+                const stack = gameState.selectedTrashStack;
+                const stackCategory = stack[0].trash.type.kategori;
                 let droppedOnBin = false;
-                
-                const draggedRect = draggedTrashEl.getBoundingClientRect();
-
+                const firstGhostRect = gameState.selectedTrashStackGhosts[0].getBoundingClientRect();
                 for (const binCategory in binButtons) {
                     const binRect = binButtons[binCategory].getBoundingClientRect();
-                    if (isOverlapping(draggedRect, binRect)) {
+                    if (isOverlapping(firstGhostRect, binRect)) {
                         droppedOnBin = true;
                         if (stackCategory === binCategory) {
                             gameState.score += 10 * stack.length;
-                            stack.forEach(trash => gameState.collectedTrash[trash.type.jenis].push(trash));
-                            showMessage(`+${stack.length} sampah ${stack[0].type.jenis} dikumpulkan!`, 2000);
+                            stack.forEach(item => gameState.collectedTrash[item.trash.type.jenis].push(item.trash));
+                            showMessage(`+${stack.length} sampah dikumpulkan!`, 2000);
                         } else {
                             gameState.trashPassed += stack.length;
                             showMessage(`Salah keranjang! ${stack.length} sampah terlewat.`, 2000);
@@ -687,34 +1042,38 @@
                         break; 
                     }
                 }
-                
-                const stackIds = new Set(stack.map(t => t.id));
+                const canvasRect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - canvasRect.left;
+                const mouseY = e.clientY - canvasRect.top;
+                const riverWidth = canvas.width / 2;
+                const riverStartX = (canvas.width - riverWidth) / 2;
+                const riverEndX = riverStartX + riverWidth;
+                const droppedOnRiver = (mouseX >= riverStartX && mouseX <= riverEndX && mouseY >= 0 && mouseY <= canvas.height);
                 if (droppedOnBin) {
+                    const stackIds = new Set(stack.map(item => item.trash.id));
                     gameState.trashOnScreen = gameState.trashOnScreen.filter(t => !stackIds.has(t.id));
-                    gameState.trashInTrap = gameState.trashInTrap.filter(t => !stackIds.has(t.id));
-                } else {
-                    const canvasRect = canvas.getBoundingClientRect();
-                    stack.forEach(trash => {
-                        trash.isVisible = true;
-                        gameState.trashInTrap = gameState.trashInTrap.filter(t => t.id !== trash.id); 
-                        
-                        let newX = e.clientX - canvasRect.left - trash.width / 2;
-                        let newY = e.clientY - canvasRect.top - trash.height / 2;
-                        
-                        trash.x = Math.max(0, Math.min(newX, canvas.width - trash.width));
-                        trash.y = Math.max(0, Math.min(newY, canvas.height - trash.height));
-                        
-                        if (!gameState.trashOnScreen.some(t => t.id === trash.id)) {
-                           gameState.trashOnScreen.push(trash);
+                } else if (droppedOnRiver) {
+                    stack.forEach(item => {
+                        item.trash.isVisible = true;
+                        item.trash.x = Math.max(riverStartX, Math.min((mouseX + item.relativeX), riverEndX - item.trash.width));
+                        item.trash.y = Math.max(0, Math.min((mouseY + item.relativeY), canvas.height - item.trash.height));
+                        if (!gameState.trashOnScreen.some(t => t.id === item.trash.id)) {
+                           gameState.trashOnScreen.push(item.trash);
                         }
                     });
                     showMessage(`${stack.length} sampah kembali ke sungai!`, 2000);
+                } else {
+                    stack.forEach(item => { 
+                        item.trash.isVisible = true;
+                        item.trash.x = item.originalX;
+                        item.trash.y = item.originalY;
+                    });
+                    showMessage(`${stack.length} sampah kembali ke posisi semula!`, 2000);
                 }
             }
-
-            // Reset state
             for (const type in binButtons) { binButtons[type].classList.remove('highlight'); }
-            draggedTrashEl.style.display = 'none';
+            draggedStackContainer.innerHTML = '';
+            gameState.selectedTrashStackGhosts = [];
             document.body.style.cursor = 'default';
             gameState.isDragging = false;
             gameState.selectedTrashStack = [];
@@ -725,59 +1084,180 @@
             return !(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom);
         }
         
-        // Event Listeners untuk Tombol
+        // --- Event Listeners untuk Tombol ---
         sellBtn.addEventListener('click', () => {
             let totalMoney = 0;
-            for (const type in gameState.collectedTrash) {
-                gameState.collectedTrash[type].forEach(trash => {
-                    totalMoney += trash.type.harga_per_kg * trash.type.berat_kg;
-                });
-                gameState.collectedTrash[type] = [];
-            }
+            Object.values(gameState.collectedTrash).flat().forEach(trash => {
+                totalMoney += trash.type.harga_per_kg * trash.type.berat_kg;
+            });
+            Object.keys(gameState.collectedTrash).forEach(key => {
+                if (!key.startsWith('special')) gameState.collectedTrash[key] = [];
+            });
             if (totalMoney > 0) {
                 gameState.money += Math.round(totalMoney);
                 showMessage(`Berhasil menjual sampah senilai Rp ${Math.round(totalMoney)}!`);
-                updateUI();
             }
         });
         
-        buyTrapBtn.addEventListener('click', () => {
-            if (gameState.money >= config.buyTrapCost && !gameState.isTrapOwned) {
-                gameState.money -= config.buyTrapCost;
-                gameState.isTrapOwned = true;
-                gameState.isTrapBroken = false;
-                gameState.trapDurability = config.trapMaxDurability;
-                showMessage("Perangkap sampah berhasil dibeli!");
-                updateUI();
+        function renderShop() {
+            shopContent.innerHTML = '';
+            shopToolsContent.innerHTML = '';
+            // Render Traps
+            for (const part in gameState.traps) {
+                const trap = gameState.traps[part];
+                const upgradeCost = getNewUpgradeCost(trap.level + 1, trap.price);
+                const card = document.createElement('div');
+                card.className = 'catalog-item';
+                const name = `<h3>Perangkap ${trap.name}</h3>`;
+                const level = `<p>Level: ${trap.level}</p>`;
+                let buttons = '';
+                if (trap.owned) {
+                    buttons = `<button class="catalog-button btn-upgrade" data-part="${part}" ${gameState.money < upgradeCost ? 'disabled' : ''}>Upgrade (Rp ${upgradeCost})</button>`;
+                } else {
+                    buttons = `<button class="catalog-button btn-buy" data-part="${part}" ${gameState.money < trap.price ? 'disabled' : ''}>Beli (Rp ${trap.price})</button>`;
+                }
+                card.innerHTML = `<div class="catalog-icon">🥅</div>` + name + level + `<div class="catalog-button-group">${buttons}</div>`;
+                shopContent.appendChild(card);
+            }
+            // Render Tools
+            for (const key in gameState.tools) {
+                const tool = gameState.tools[key];
+                const upgradeCost = getNewUpgradeCost(tool.level + 1, tool.price);
+                const card = document.createElement('div');
+                card.className = 'catalog-item';
+                const name = `<h3>${tool.name}</h3>`;
+                const level = `<p>Level: ${tool.level}</p>`;
+                let buttons = '';
+                const allTrapsOwned = gameState.traps.left.owned && gameState.traps.center.owned && gameState.traps.right.owned;
+                if (tool.owned) {
+                    buttons = `<button class="catalog-button btn-upgrade" data-tool="${key}" ${gameState.money < upgradeCost ? 'disabled' : ''}>Upgrade (Rp ${upgradeCost})</button>`;
+                } else {
+                    let disabled = gameState.money < tool.price;
+                    if (key === 'trapSweeper' && !allTrapsOwned) disabled = true;
+                    buttons = `<button class="catalog-button btn-buy" data-tool="${key}" ${disabled ? 'disabled' : ''}>Beli (Rp ${tool.price})</button>`;
+                }
+                card.innerHTML = `<div class="catalog-icon">🔧</div>` + name + level + `<div class="catalog-button-group">${buttons}</div>`;
+                shopToolsContent.appendChild(card);
+            }
+        }
+
+        shopBtn.addEventListener('click', () => {
+            pauseGame();
+            renderShop();
+            shopOverlay.style.display = 'flex';
+        });
+        
+        shopContent.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (!button || button.disabled) return;
+            const part = button.dataset.part;
+            if (button.classList.contains('btn-buy')) {
+                buyTrap(part);
+                renderShop();
+            }
+            if (button.classList.contains('btn-upgrade')) {
+                const trap = gameState.traps[part];
+                const upgradeCost = getNewUpgradeCost(trap.level + 1, trap.price);
+                if (gameState.money >= upgradeCost) {
+                    gameState.money -= upgradeCost;
+                    trap.level++;
+                    showMessage(`Perangkap ${part} di-upgrade ke Lv. ${trap.level}!`);
+                    renderShop();
+                }
             }
         });
 
-        maintainTrapBtn.addEventListener('click', () => {
-            if (gameState.isTrapOwned && gameState.money >= config.maintainTrapCost) {
-                gameState.money -= config.maintainTrapCost;
-                gameState.trapDurability = config.trapMaxDurability;
-                gameState.isTrapBroken = false;
-                showMessage("Perangkap berhasil di-maintenance!");
-                updateUI();
+        shopToolsContent.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (!button || button.disabled) return;
+            const key = button.dataset.tool;
+            const tool = gameState.tools[key];
+            if (button.classList.contains('btn-buy')) {
+                if (gameState.money >= tool.price) {
+                    gameState.money -= tool.price;
+                    tool.owned = true;
+                    tool.level = 1;
+                    if (key === 'megaNet') megaNetBtn.style.display = 'block';
+                    if (key === 'trapSweeper') gameState.tools.trapSweeper.position = trapPlacementHitboxes.left.x;
+                    showMessage(`${tool.name} berhasil dibeli!`);
+                    renderShop();
+                }
+            }
+            if (button.classList.contains('btn-upgrade')) {
+                const upgradeCost = getNewUpgradeCost(tool.level + 1, tool.price);
+                if (gameState.money >= upgradeCost) {
+                    gameState.money -= upgradeCost;
+                    tool.level++;
+                    if (key === 'megaNet') tool.cooldown -= 1;
+                    showMessage(`${tool.name} di-upgrade ke Lv. ${tool.level}!`);
+                    renderShop();
+                }
             }
         });
 
-        upgradeGrabBtn.addEventListener('click', () => {
-            if (gameState.money >= gameState.grabUpgradeCost) {
-                gameState.money -= gameState.grabUpgradeCost;
-                gameState.grabLevel++;
-                gameState.grabRadius += 25;
-                gameState.grabUpgradeCost = Math.round(gameState.grabUpgradeCost * 2.5);
-                showMessage(`Area Grab di-upgrade ke Lv. ${gameState.grabLevel}!`);
-                updateUI();
+        function renderInventory() {
+            inventoryContent.innerHTML = '';
+            let hasItems = false;
+            ['specialX', 'specialY', 'specialZ'].forEach(itemKey => {
+                const count = gameState.inventory[itemKey];
+                const itemInfo = TRASH_TYPES[itemKey];
+                hasItems = hasItems || count > 0;
+                const card = document.createElement('div');
+                card.className = 'catalog-item';
+                const name = `<h3>${itemInfo.name}</h3>`;
+                const countText = `<p>Jumlah: ${count}</p>`;
+                let sellButton = '';
+                if (itemInfo.sellPrice > 0) {
+                    sellButton = `<button class="inventory-sell-btn" data-item="${itemKey}" ${count === 0 ? 'disabled' : ''}>Jual (Rp ${itemInfo.sellPrice})</button>`;
+                } else {
+                    sellButton = `<button class="inventory-sell-btn" disabled>Tidak bisa dijual</button>`;
+                }
+                card.innerHTML = `<div class="catalog-icon">${itemInfo.char}</div>` + name + countText + sellButton;
+                inventoryContent.appendChild(card);
+            });
+            if (!hasItems) {
+                inventoryContent.innerHTML = '<p>Kosong</p>';
+            }
+        }
+
+        inventoryBtn.addEventListener('click', () => {
+            pauseGame();
+            renderInventory();
+            inventoryOverlay.style.display = 'flex';
+        });
+        
+        inventoryContent.addEventListener('click', (e) => {
+            const button = e.target.closest('button.inventory-sell-btn');
+            if (button && !button.disabled) {
+                const itemKey = button.dataset.item;
+                if (gameState.inventory[itemKey] > 0) {
+                    const itemInfo = TRASH_TYPES[itemKey];
+                    gameState.inventory[itemKey]--;
+                    gameState.money += itemInfo.sellPrice;
+                    showMessage(`Berhasil menjual 1 ${itemInfo.name}!`);
+                    renderInventory();
+                }
             }
         });
         
-        pauseBtn.addEventListener('click', pauseGame);
+        megaNetBtn.addEventListener('click', () => {
+            if (!megaNetBtn.disabled) {
+                gameState.isUsingMegaNet = true;
+                canvas.style.cursor = 'crosshair';
+            }
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            pauseGame();
+            pauseMenuOverlay.style.display = 'flex';
+        });
         resumeBtn.addEventListener('click', resumeGame);
         restartBtn.addEventListener('click', () => window.location.reload());
+        closeShopBtn.addEventListener('click', resumeGame);
+        closeInventoryBtn.addEventListener('click', resumeGame);
 
         window.onload = function() {
+            resizeCanvas();
             gameLoop();
         };
     </script>
